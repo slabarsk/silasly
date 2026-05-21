@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { clearSession, getSession, saveSession, sessionEventName } from "./session.js";
 import "./styles.css";
@@ -1746,17 +1746,30 @@ function AdminPage({ session, navigate }) {
   );
 }
 
-function ChatWindow({ session, navigate }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [message, setMessage] = useState("");
-  const [items, setItems] = useState([
+function getInitialChatItems() {
+  return [
     {
       role: "assistant",
       text: "Pozisyon ve şehir yazarak iş ilanı arayabilirsin.",
       jobs: []
     }
-  ]);
+  ];
+}
+
+function ChatWindow({ session, navigate }) {
+  const chatSessionKey = session.userId || "guest";
+  const chatSessionKeyRef = useRef(chatSessionKey);
+  const [isOpen, setIsOpen] = useState(false);
+  const [message, setMessage] = useState("");
+  const [items, setItems] = useState(getInitialChatItems);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    chatSessionKeyRef.current = chatSessionKey;
+    setMessage("");
+    setItems(getInitialChatItems());
+    setIsLoading(false);
+  }, [chatSessionKey]);
 
   function getContextJobs() {
     return items.flatMap((item) => item.jobs || []).slice(-10);
@@ -1792,12 +1805,18 @@ function ChatWindow({ session, navigate }) {
     setMessage("");
     setIsLoading(true);
 
+    const requestSessionKey = chatSessionKeyRef.current;
+
     try {
       const data = await agentPost("/agent/message", {
         message: nextMessage,
         userId: session.userId || "",
         contextJobs: getContextJobs()
       });
+
+      if (chatSessionKeyRef.current !== requestSessionKey) {
+        return;
+      }
 
       setItems((currentItems) => [
         ...currentItems,
@@ -1809,6 +1828,10 @@ function ChatWindow({ session, navigate }) {
       ]);
       handleAgentActions(data.actions || []);
     } catch {
+      if (chatSessionKeyRef.current !== requestSessionKey) {
+        return;
+      }
+
       setItems((currentItems) => [
         ...currentItems,
         {
@@ -1818,7 +1841,9 @@ function ChatWindow({ session, navigate }) {
         }
       ]);
     } finally {
-      setIsLoading(false);
+      if (chatSessionKeyRef.current === requestSessionKey) {
+        setIsLoading(false);
+      }
     }
   }
 
