@@ -1,0 +1,17 @@
+{
+  "name": "job-platform",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*"
+  ],
+  "scripts": {
+    "dev:frontend": "npm run dev -w apps/frontend",
+    "dev:api-gateway": "npm run dev -w services/api-gateway",
+    "dev:job-search": "npm run dev -w services/job-search-service",
+    "dev:job-posting": "npm run dev -w services/job-posting-service",
+    "dev:notification": "npm run dev -w services/notification-service",
+    "dev:ai-agent": "npm run dev -w services/ai-agent-service"
+  }
+}
