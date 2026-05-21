@@ -470,3 +470,7 @@ curl https://silasly-final-api.azurewebsites.net/api/v1/jobs?page=1
 - A production service URL mismatch caused the gateway and related services to call an older job posting endpoint. The Azure environment variables were updated so all production calls use the active job posting service.
 - Notification and agent services needed restarts after environment variable changes so they could reconnect with the updated configuration.
 - Frontend production configuration was checked to confirm that browser requests use the API Gateway instead of localhost or internal service URLs.
+
+## Demo Video
+
+Short demo video: `https://youtu.be/cRvlDAJBowE`
