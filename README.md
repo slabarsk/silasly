@@ -13,6 +13,17 @@ Silasly is a job search web application with a React frontend and a set of Node.
 
 The frontend is configured to call only the API Gateway in production. Browser network requests should use the API Gateway base URL rather than calling internal services directly.
 
+## Demo Accounts
+
+The following accounts are available for review:
+
+| Role | Email |
+| --- | --- |
+| User | `sila@is.com` |
+| Admin | `sila@admin.com` |
+
+The demo password is shared separately for security reasons.
+
 ## Project Description
 
 The project is built around a job platform scenario. Users can search current job postings, filter by position and city, view job detail pages, apply to jobs, create job alerts, and receive notifications when new jobs match their saved criteria. Admin or company users can create, update, and deactivate job postings from the management page.
@@ -34,6 +45,81 @@ Supporting services:
 - Redis is used as a distributed cache for job detail responses.
 - RabbitMQ is used for job-created notification flow.
 - Firebase Authentication provides user identity and role claims.
+
+## Main API Endpoints
+
+All browser requests are routed through the API Gateway base URL:
+
+`https://silasly-final-api.azurewebsites.net/api/v1`
+
+| Use case | Method and path | Auth |
+| --- | --- | --- |
+| Service health | `GET /health/services` | Public |
+| List and filter jobs | `GET /jobs?page=1&limit=5&position=ios&city=İstanbul` | Public |
+| Job detail | `GET /jobs/:id` | Public |
+| Related jobs | `GET /jobs/:id/related` | Public |
+| Position autocomplete | `GET /jobs/autocomplete/positions?search=ios` | Public |
+| City autocomplete | `GET /jobs/autocomplete/cities?search=ist` | Public |
+| Create job | `POST /jobs` | Admin/company |
+| Update job | `PUT /jobs/:id` | Admin/company |
+| Deactivate job | `DELETE /jobs/:id` | Admin/company |
+| Apply to job | `POST /jobs/:id/apply` | User |
+| Application status | `GET /jobs/:id/application-status` | User |
+| List applications | `GET /applications?page=1&limit=20` | Admin/company |
+| Save search history | `POST /search-history` | User |
+| List user search history | `GET /search-history/:userId` | User/admin |
+| Create job alert | `POST /alerts` | User |
+| List user alerts | `GET /alerts/:userId` | User/admin |
+| Update alert | `PUT /alerts/:id` | User/admin |
+| Delete alert | `DELETE /alerts/:id` | User/admin |
+| List notifications | `GET /notifications/:userId?page=1&limit=10` | User/admin |
+| Unread notification count | `GET /notifications/:userId/unread-count` | User/admin |
+| Mark notifications read | `PATCH /notifications/:userId/read` | User/admin |
+| Process job alert task | `POST /tasks/process-job-alerts` | Scheduler/internal operation |
+| Process related search task | `POST /tasks/process-related-search-notifications` | Scheduler/internal operation |
+| Agent message | `POST /agent/message` | Public |
+
+## Requirement Checklist
+
+### Home Page
+
+- Position and city search are supported.
+- Position and city inputs support autocomplete.
+- The home page can use a preferred user city when available.
+- The page shows current job postings and falls back to broader results if a preferred-city search has too few matches.
+- Recent searches are shown under `Son Aramalarım` for authenticated users.
+- The login link is shown only when the user is not authenticated.
+
+### Search Results
+
+- Results can be filtered by position, city, town, and work type.
+- Active filters are shown above the result list.
+- Each active filter can be removed individually.
+- Results support pagination through the `page` and `limit` query parameters.
+
+### Job Detail and Application
+
+- Job detail includes title, company, location, work type, last updated date, application count, description, and requirements.
+- Related postings are shown on the job detail page.
+- Authenticated users can apply from the detail page.
+- Unauthenticated users are redirected to the login page before applying.
+- Admin/company users can add, update, and deactivate job postings.
+
+### Notification
+
+- New job postings are published to RabbitMQ.
+- The notification service consumes job-created messages and stores pending jobs for retry when needed.
+- Job alerts are matched against new postings by keywords, country, city, town, and work type.
+- Search history is stored separately from the job posting data.
+- A scheduled task sends related job notifications based on recent search history.
+- Notification records can be listed and marked as read through REST endpoints.
+
+### Agent
+
+- The chat window is available from the main application screen.
+- The agent searches jobs through the existing REST APIs.
+- The agent can return job cards and guide users to detail/application flows.
+- The agent is rule-based by design; the assignment does not require external model integration.
 
 ## Data Models
 
