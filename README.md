@@ -200,6 +200,101 @@ Each service uses environment variables instead of hardcoded production values. 
 - `FIREBASE_PRIVATE_KEY`
 - `JOB_POSTING_SERVICE_URL`
 
+
+## ER Diagram
+
+```mermaid
+erDiagram
+    USER ||--o{ JOB_APPLICATION : submits
+    USER ||--o{ JOB_ALERT : creates
+    USER ||--o{ JOB_SEARCH_HISTORY : searches
+    USER ||--o{ NOTIFICATION_LOG : receives
+
+    JOB_POSTING ||--o{ JOB_APPLICATION : has
+    JOB_POSTING ||--o{ NOTIFICATION_LOG : referenced_by
+    JOB_ALERT ||--o{ NOTIFICATION_LOG : generates
+    PENDING_JOB }o--|| JOB_POSTING : retries
+
+    USER {
+        string uid
+        string email
+        string role
+    }
+
+    JOB_POSTING {
+        ObjectId _id
+        string title
+        string companyName
+        string country
+        string city
+        string town
+        string workType
+        string positionLevel
+        string department
+        string description
+        string requirements
+        date lastUpdatedAt
+        number applicationCount
+        boolean isActive
+        date createdAt
+    }
+
+    JOB_APPLICATION {
+        ObjectId _id
+        ObjectId jobId
+        string userId
+        string fullName
+        string email
+        date appliedAt
+    }
+
+    JOB_ALERT {
+        ObjectId _id
+        string userId
+        string keywords
+        string country
+        string city
+        string town
+        string workType
+        boolean isActive
+        date createdAt
+        date updatedAt
+    }
+
+    NOTIFICATION_LOG {
+        ObjectId _id
+        string userId
+        ObjectId jobId
+        ObjectId alertId
+        string title
+        string message
+        date sentAt
+        date readAt
+        string type
+    }
+
+    JOB_SEARCH_HISTORY {
+        ObjectId _id
+        string userId
+        string position
+        string city
+        string country
+        date searchedAt
+    }
+
+    PENDING_JOB {
+        ObjectId _id
+        string jobId
+        string payload
+        string status
+        number retryCount
+        string lastError
+        date createdAt
+        date updatedAt
+    }
+```
+
+
 ## Local Run Instructions
 
 Install dependencies from the project root:
